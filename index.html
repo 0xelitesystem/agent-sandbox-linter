@@ -1,0 +1,1391 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Sandbox Linter - what your agent allowlist actually permits</title>
+<meta name="description" content="Paste the command allowlist and host allowlist your AI agent runs behind. Get documented, primary-sourced ways a permitted program runs code from its own argv, plus host entries whose wildcards admit subdomains anyone can provision. Runs entirely in your browser.">
+<link rel="canonical" href="https://0xelitesystem.github.io/agent-sandbox-linter/">
+<meta property="og:title" content="Agent Sandbox Linter - what your agent allowlist actually permits">
+<meta property="og:description" content="Paste the command allowlist and host allowlist your AI agent runs behind and see what they permit that you did not intend. Primary-sourced catalogue, no network calls.">
+<meta property="og:url" content="https://0xelitesystem.github.io/agent-sandbox-linter/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Agent Sandbox Linter",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "url": "https://0xelitesystem.github.io/agent-sandbox-linter/",
+  "description": "Paste the command allowlist and host allowlist an AI agent runs behind and see which permitted programs are documented to run code from their own argv, and which host entries admit subdomains anyone can provision. Client side only.",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "author": { "@type": "Organization", "name": "elitesystem.ai", "url": "https://elitesystem.ai" }
+}
+</script>
+<style>
+:root {
+  --bg: #0d1117;
+  --bg2: #141b24;
+  --bg3: #1a2431;
+  --panel: #111820;
+  --line: #263140;
+  --line2: #35435a;
+  --fg: #e6edf3;
+  --fg2: #a9b6c4;
+  --fg3: #7d8b9b;
+  --accent: #58c4ff;
+  --accent2: #0b5f8a;
+  --r1: #ff7b72;
+  --r1bg: #2b1416;
+  --r2: #ffbe5c;
+  --r2bg: #2a2010;
+  --r3: #6ee7b7;
+  --r3bg: #0f251d;
+  --r4: #9aa8b8;
+  --r4bg: #171e27;
+  --snap: #c8a2ff;
+  --snapbg: #1d1730;
+  --focus: #ffd24a;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+:root[data-theme="light"] {
+  --bg: #f7f9fb;
+  --bg2: #ffffff;
+  --bg3: #eef2f7;
+  --panel: #ffffff;
+  --line: #d7dee7;
+  --line2: #bcc7d4;
+  --fg: #10161d;
+  --fg2: #3c4a59;
+  --fg3: #64748b;
+  --accent: #0b5f8a;
+  --accent2: #58c4ff;
+  --r1: #a41c14;
+  --r1bg: #fdecea;
+  --r2: #8a5a00;
+  --r2bg: #fdf3e0;
+  --r3: #0d6b4f;
+  --r3bg: #e7f7f0;
+  --r4: #55637a;
+  --r4bg: #eef2f7;
+  --snap: #5b2ea8;
+  --snapbg: #f2ecff;
+  --focus: #8a5a00;
+}
+* { box-sizing: border-box; }
+html, body { max-width: 100%; overflow-x: hidden; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+}
+.wrap { max-width: 1080px; margin: 0 auto; padding: 20px 16px 64px; }
+a { color: var(--accent); }
+a:hover { color: var(--fg); }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+h1, h2, h3 { line-height: 1.25; margin: 0 0 10px; letter-spacing: -0.01em; }
+h1 { font-size: clamp(1.55rem, 4.5vw, 2.25rem); }
+h2 { font-size: clamp(1.15rem, 3vw, 1.45rem); margin-top: 38px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+h3 { font-size: 1.03rem; margin-top: 22px; color: var(--fg); }
+p { margin: 0 0 12px; }
+code, kbd, pre { font-family: var(--mono); font-size: 0.86em; }
+code { background: var(--bg3); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; }
+.small { font-size: 0.85rem; color: var(--fg2); }
+.tiny { font-size: 0.78rem; color: var(--fg3); }
+
+header.top { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; justify-content: space-between; }
+header.top .brand { min-width: 0; flex: 1 1 320px; }
+.tagline { color: var(--fg2); margin: 4px 0 0; }
+
+button, select {
+  font: inherit;
+  color: var(--fg);
+  background: var(--bg3);
+  border: 1px solid var(--line2);
+  border-radius: 8px;
+  padding: 8px 13px;
+  cursor: pointer;
+}
+button:hover, select:hover { border-color: var(--accent); }
+button.primary { background: var(--accent2); border-color: var(--accent); color: #ffffff; font-weight: 600; }
+:root[data-theme="light"] button.primary { background: var(--accent); color: #ffffff; }
+button.ghost { background: transparent; }
+button.tiny-btn { padding: 3px 9px; font-size: 0.78rem; border-radius: 6px; }
+
+.callout {
+  margin: 18px 0 6px;
+  padding: 14px 16px;
+  border: 1px solid var(--line2);
+  border-left: 5px solid var(--r2);
+  border-radius: 10px;
+  background: var(--r2bg);
+}
+.callout p:last-child { margin-bottom: 0; }
+.callout strong { color: var(--fg); }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid2 > * { min-width: 0; }
+@media (max-width: 780px) { .grid2 { grid-template-columns: 1fr; } }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; min-width: 0; }
+label.fieldlabel { display: block; font-weight: 600; margin-bottom: 4px; }
+textarea {
+  width: 100%;
+  min-height: 190px;
+  resize: vertical;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--line2);
+  border-radius: 8px;
+  padding: 10px;
+}
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 16px 0 4px; }
+.controls .spacer { flex: 1 1 auto; }
+
+.summary { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 4px; }
+.stat { flex: 1 1 150px; min-width: 0; background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.stat .n { font-size: 1.45rem; font-weight: 700; font-family: var(--mono); }
+.stat .k { font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg3); }
+
+.empty { border: 1px dashed var(--line2); border-radius: 12px; padding: 22px 16px; text-align: center; color: var(--fg2); background: var(--bg2); }
+
+.row { border: 1px solid var(--line); border-radius: 12px; background: var(--bg2); margin: 12px 0; overflow: hidden; }
+.row-head { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; padding: 10px 12px; background: var(--bg3); border-bottom: 1px solid var(--line); min-width: 0; }
+.row-head .entry { font-size: 0.9rem; background: var(--bg); border-color: var(--line2); word-break: break-all; }
+.row-head .meta { color: var(--fg3); font-size: 0.8rem; }
+.rank { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 3px 9px; border-radius: 999px; border: 1px solid currentColor; max-width: 100%; min-width: 0; overflow-wrap: break-word; }
+.rank-1 { color: var(--r1); background: var(--r1bg); }
+.rank-2 { color: var(--r2); background: var(--r2bg); }
+.rank-3 { color: var(--r3); background: var(--r3bg); }
+.rank-4 { color: var(--r4); background: var(--r4bg); }
+
+.cols { display: grid; grid-template-columns: 1fr 1fr; }
+.cols > * { min-width: 0; }
+.col { padding: 12px; }
+.col-a { border-right: 1px solid var(--line); }
+@media (max-width: 720px) {
+  .cols { grid-template-columns: 1fr; }
+  .col-a { border-right: 0; border-bottom: 1px solid var(--line); }
+}
+.col-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg3); margin: 0 0 8px; }
+.col-label .tagpill { font-family: var(--mono); background: var(--bg3); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; margin-right: 6px; color: var(--fg2); }
+
+.esc { border-top: 1px dashed var(--line); padding-top: 9px; margin-top: 9px; }
+.esc:first-of-type { border-top: 0; padding-top: 0; margin-top: 0; }
+.esc .name { font-weight: 600; font-size: 0.92rem; }
+.esc .klass { font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--fg3); }
+.codewrap { overflow-x: auto; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; margin: 7px 0; max-width: 100%; }
+.codewrap pre { margin: 0; padding: 9px 10px; white-space: pre; }
+.cite { font-size: 0.8rem; color: var(--fg2); margin: 6px 0 0; }
+.cite blockquote { margin: 4px 0 4px; padding: 5px 10px; border-left: 3px solid var(--line2); color: var(--fg); background: var(--bg3); border-radius: 0 6px 6px 0; overflow-wrap: break-word; }
+
+fieldset.decl { border: 1px solid var(--line); border-radius: 9px; padding: 9px 11px 11px; margin: 0; }
+fieldset.decl legend { font-size: 0.78rem; color: var(--fg2); padding: 0 5px; }
+fieldset.decl label { display: flex; gap: 8px; align-items: flex-start; padding: 4px 0; font-size: 0.88rem; cursor: pointer; }
+fieldset.decl input { margin-top: 5px; flex: 0 0 auto; accent-color: var(--accent); }
+.assert { margin: 9px 0 0; font-size: 0.8rem; color: var(--fg2); border-top: 1px dashed var(--line); padding-top: 8px; }
+.assert b { color: var(--fg); }
+
+.snapshot { border: 1px solid var(--snap); border-radius: 12px; background: var(--snapbg); padding: 14px; margin-top: 14px; }
+.snapchip { display: inline-block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--snap); border: 1px solid var(--snap); border-radius: 999px; padding: 2px 9px; margin-right: 8px; }
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--bg2); max-width: 100%; }
+table { border-collapse: collapse; width: 100%; min-width: 660px; font-size: 0.87rem; }
+th, td { text-align: left; padding: 9px 11px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { background: var(--bg3); font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--fg2); position: sticky; top: 0; }
+tr:last-child td { border-bottom: 0; }
+td.q { color: var(--fg2); }
+td.q q { color: var(--fg); }
+
+ul.plain { margin: 0 0 12px; padding-left: 20px; }
+ul.plain li { margin-bottom: 6px; }
+.notice { font-size: 0.83rem; color: var(--r2); border: 1px solid var(--r2); background: var(--r2bg); border-radius: 8px; padding: 8px 11px; margin: 10px 0; }
+.ok { color: var(--r3); }
+
+footer { margin-top: 46px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--fg2); font-size: 0.88rem; }
+footer a { margin-right: 14px; display: inline-block; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+</style>
+</head>
+<body>
+<script>
+(function () {
+  try {
+    var t = window.localStorage.getItem('asl-theme');
+    if (t === 'light' || t === 'dark') {
+      document.documentElement.setAttribute('data-theme', t);
+    }
+  } catch (e) { /* storage unavailable, keep the dark default */ }
+})();
+</script>
+
+<div class="wrap">
+
+<header class="top">
+  <div class="brand">
+    <h1>Agent Sandbox Linter</h1>
+    <p class="tagline">Paste the two allowlists your agent actually runs behind. Get what they permit that you did not intend.</p>
+  </div>
+  <button id="themeBtn" type="button" class="ghost" aria-pressed="true">Light mode</button>
+</header>
+
+<div class="callout" role="note">
+  <p><strong>Read this before you read a result.</strong> This tool can prove an allowlist <em>insufficient</em> by exhibiting a permitted escape. It can never prove one <em>sufficient</em>.</p>
+  <p class="small">A clean result means nothing in a finite, dated catalogue matched your entries. It is not a verdict on your sandbox. The catalogue below is a snapshot of documented behaviour in long-lived programs, not an exhaustive bypass corpus, and it is deliberately not a corpus of product-specific matcher bypasses.</p>
+</div>
+
+<h2>Inputs</h2>
+<p class="small">One entry per line, or paste a JSON array or a settings object and the parser will pull the strings out of it. Lines starting with <code>#</code> are ignored. Wrapper forms such as <code>Bash(git log:*)</code> are unwrapped to the program name.</p>
+
+<div class="grid2">
+  <div class="panel">
+    <label class="fieldlabel" for="cmdInput">Permitted commands</label>
+    <p class="tiny">Examples: <code>git</code>, <code>git log *</code>, <code>docker run *</code>, <code>npm run build</code>.</p>
+    <textarea id="cmdInput" spellcheck="false" aria-describedby="cmdHelp" placeholder="git&#10;git log *&#10;find&#10;awk"></textarea>
+    <p id="cmdHelp" class="tiny">The tool reads the program name only. It never guesses what your matcher does with the rest of the line.</p>
+  </div>
+  <div class="panel">
+    <label class="fieldlabel" for="hostInput">Permitted hosts</label>
+    <p class="tiny">Examples: <code>api.example.com</code>, <code>*.githubusercontent.com</code>, <code>*</code>.</p>
+    <textarea id="hostInput" spellcheck="false" aria-describedby="hostHelp" placeholder="api.example.com&#10;*.githubusercontent.com"></textarea>
+    <p id="hostHelp" class="tiny">Schemes, ports, paths and userinfo are stripped. No request is made to any host, ever.</p>
+  </div>
+</div>
+
+<div class="controls">
+  <button id="runBtn" type="button" class="primary">Analyse</button>
+  <button id="sampleBtn" type="button">Load sample</button>
+  <button id="clearBtn" type="button" class="ghost">Clear</button>
+  <span class="spacer"></span>
+  <button id="declNameBtn" type="button" class="ghost">Declare all: name only</button>
+  <button id="declArgsBtn" type="button" class="ghost">Declare all: constrains arguments</button>
+  <button id="copyBtn" type="button">Copy report</button>
+</div>
+<p class="tiny" id="errBox" role="alert"></p>
+
+<h2>Results</h2>
+<div class="summary" id="summary" aria-live="polite"></div>
+
+<h3>Command allowlist</h3>
+<div id="cmdOut"></div>
+
+<h3>Host allowlist</h3>
+<div id="hostOut"></div>
+
+<h2>How the ranking works</h2>
+<p>Every command row has exactly two columns, and they come from different places on purpose.</p>
+<ul class="plain">
+  <li><b>Column A is computed by this tool and is runtime independent.</b> It asks one question: does your entry name a program that is documented to take a command on its own argv? That answer does not change with your agent product, your matcher, or your shell. It comes from the manual of the program.</li>
+  <li><b>Column B is declared by you.</b> One choice per entry: does your matcher constrain arguments, or does it only match the program name? This tool does not know, does not probe, and does not guess. Whatever the row says about column B, the row also says that you asserted it.</li>
+  <li><b>The ranking is A and not B.</b> A catalogued program plus a matcher you declared to be name only is a permitted escape. A catalogued program plus a matcher you declared to constrain arguments is not cleared, it is <em>unknown to this tool</em>, and the row says so.</li>
+</ul>
+<p class="small">Host rows have no column B. A wildcard is a property of the string you typed, so the whole row is computed.</p>
+
+<h2>What this tool refuses to do</h2>
+<ul class="plain">
+  <li><b>It does not decide whether <code>git log *</code> admits a dangerous flag.</b> That answer depends on one specific product's matcher in one specific release, and a repository full of those goes stale in a release cycle. The escapes here are documented behaviour of programs that have shipped for decades.</li>
+  <li><b>It does not classify hosts as egress or ingestion.</b> Whether a host serves content an attacker authored is a judgement about your deployment, and a tool that asked you and then printed your answer back as a finding would be relabelling an input. The only thing computable from a host string with zero requests is scope, so scope is all this half computes.</li>
+  <li><b>It does not catalogue the obvious.</b> <code>sh</code>, <code>bash</code>, <code>python3</code>, <code>node</code>, <code>perl</code> and <code>ruby</code> are absent because nobody is surprised that an interpreter runs code from argv. The catalogue collects programs that get allowlisted as version control, archive, search or transport tools and still run argv supplied code.</li>
+  <li><b>It makes no network request.</b> Not to the hosts you paste, not to a source URL, not to anything. Every quote below was fetched by hand while the catalogue was written and then frozen into this file.</li>
+</ul>
+
+<h2>Catalogue</h2>
+<div class="snapshot">
+  <p><span class="snapchip" id="snapChipA">Snapshot</span><b>External material, frozen on <span id="snapDateA">2026-08-11</span>.</b></p>
+  <p class="small">Everything in this section was copied from the URL beside it on that date. It is quoted, not paraphrased. Keep it mentally separate from the ranking above: the ranking depends only on whether your entry names a catalogued program or base, so a quote going stale here can change a citation without making the logic above wrong. Verify any row that matters to you by opening its link.</p>
+</div>
+
+<h3>Programs documented to run a command from their own argv</h3>
+<div class="tablewrap"><table id="cmdCatTable">
+  <thead><tr><th scope="col">Program</th><th scope="col">Documented flag</th><th scope="col">Primary source</th><th scope="col">Quoted sentence</th></tr></thead>
+  <tbody></tbody>
+</table></div>
+
+<h3>Base domains where a subdomain is provisioned by whoever asks</h3>
+<div class="tablewrap"><table id="hostCatTable">
+  <thead><tr><th scope="col">Base</th><th scope="col">Who gets a subdomain</th><th scope="col">Primary source</th><th scope="col">Quoted sentence</th></tr></thead>
+  <tbody></tbody>
+</table></div>
+<p class="small" id="ngrokNote"></p>
+
+<h2>Where this sits</h2>
+<p class="small">Three repositories in this neighbourhood, told apart by what you feed them:</p>
+<ul class="plain">
+  <li><b>This one eats an allowlist config</b> and looks forward at what it could permit.</li>
+  <li><a href="https://github.com/0xelitesystem/agent-blast-radius">agent-blast-radius</a> eats a session transcript and looks backward at what already happened.</li>
+  <li><a href="https://github.com/0xelitesystem/ai-agent-guardrails-reference">ai-agent-guardrails-reference</a> is prose, with no input at all.</li>
+</ul>
+
+<footer>
+  <p><a href="https://elitesystem.ai">An elitesystem.ai tool</a><a href="https://github.com/0xelitesystem/agent-sandbox-linter">Source on GitHub</a><a href="https://0xelitesystem.github.io/">More tools</a></p>
+  <p class="tiny">MIT licensed. Single file, no external dependencies, no network calls, nothing leaves your browser.</p>
+</footer>
+
+</div>
+
+<script>
+/* ------------------------------------------------------------------ *
+ * DATA. Frozen snapshot of primary sources, fetched 2026-08-11.
+ * Nothing here is computed. Nothing here touches the DOM.
+ * ------------------------------------------------------------------ */
+
+var CATALOG_SNAPSHOT_DATE = '2026-08-11';
+
+var COMMAND_CATALOG = [
+  {
+    id: 'git-pager',
+    program: 'git',
+    aliases: [],
+    label: 'git -c core.pager=<command>',
+    klass: 'runs a command string given on argv',
+    example: 'git -c core.pager=/path/to/script log -1',
+    why: 'The pager value is handed to a shell, and -c sets any configuration key for a single invocation, so the pager can be replaced on the command line of an otherwise ordinary read only git call.',
+    sources: [
+      { url: 'https://git-scm.com/docs/git-config', where: 'git config documentation, core.pager', quote: 'The value is meant to be interpreted by the shell.' },
+      { url: 'https://git-scm.com/docs/git', where: 'git documentation, -c <name>=<value>', quote: 'Pass a configuration parameter to the command. The value given will override values from configuration files.' }
+    ]
+  },
+  {
+    id: 'git-alias',
+    program: 'git',
+    aliases: [],
+    label: 'git -c alias.<name>=!<command>',
+    klass: 'runs a command string given on argv',
+    example: 'git -c alias.z=!/path/to/script z',
+    why: 'An alias whose expansion starts with an exclamation point is a shell command, and -c can define that alias for one invocation without writing to any config file.',
+    sources: [
+      { url: 'https://git-scm.com/docs/git-config', where: 'git config documentation, alias.*', quote: 'If the alias expansion is prefixed with an exclamation point, it will be treated as a shell command.' },
+      { url: 'https://git-scm.com/docs/git', where: 'git documentation, -c <name>=<value>', quote: 'Pass a configuration parameter to the command. The value given will override values from configuration files.' }
+    ]
+  },
+  {
+    id: 'find-exec',
+    program: 'find',
+    aliases: [],
+    label: 'find ... -exec <utility> ;',
+    klass: 'runs a command string given on argv',
+    example: 'find . -maxdepth 0 -exec /path/to/script {} ;',
+    why: 'The -exec primary is a standard part of find. It names a utility on the command line and find invokes it. No file needs to match for the traversal to reach an -exec on the starting point itself.',
+    sources: [
+      { url: 'https://pubs.opengroup.org/onlinepubs/9799919799/utilities/find.html', where: 'POSIX.1-2024, find, -exec primary', quote: 'If the primary expression is punctuated by a <semicolon>, the utility utility_name shall be invoked once for each pathname and the primary shall evaluate as true if the utility returns a zero value as exit status.' }
+    ]
+  },
+  {
+    id: 'awk-begin-system',
+    program: 'awk',
+    aliases: ['gawk', 'mawk', 'nawk'],
+    label: 'awk \'BEGIN { system("<command>") }\'',
+    klass: 'runs a command string given on argv',
+    example: 'awk \'BEGIN { system("/path/to/script") }\'',
+    why: 'The program text is argv. BEGIN runs before any input is read, and a BEGIN only program with no getline exits without reading input at all, so this needs no file argument and no stdin. system() then runs the string.',
+    sources: [
+      { url: 'https://pubs.opengroup.org/onlinepubs/9799919799/utilities/awk.html', where: 'POSIX.1-2024, awk, Special Patterns', quote: 'Each BEGIN pattern shall be matched once and its associated action executed before the first record of input is read' },
+      { url: 'https://pubs.opengroup.org/onlinepubs/9799919799/utilities/awk.html', where: 'POSIX.1-2024, awk, Special Patterns', quote: 'If an awk program consists of only actions with the pattern BEGIN, and the BEGIN action contains no getline function, awk shall exit without reading its input when the last statement in the last BEGIN action is executed.' },
+      { url: 'https://pubs.opengroup.org/onlinepubs/9799919799/utilities/awk.html', where: 'POSIX.1-2024, awk, Input/Output and General Functions', quote: 'Execute the command given by expression in a manner equivalent to the system() function defined in the System Interfaces volume of POSIX.1-2024 and return the exit status of the command.' }
+    ]
+  },
+  {
+    id: 'tar-checkpoint-exec',
+    program: 'tar',
+    aliases: ['gtar'],
+    label: 'tar --checkpoint-action=exec=<command>   (GNU tar)',
+    klass: 'runs a command string given on argv',
+    example: 'tar -cf /dev/null --checkpoint=1 --checkpoint-action=exec=/path/to/script .',
+    why: 'A checkpoint action can be an external command, and --checkpoint-action works even without --checkpoint. This is GNU tar. bsdtar does not have this option.',
+    sources: [
+      { url: 'https://www.gnu.org/software/tar/manual/html_node/checkpoints.html', where: 'GNU tar manual, section 3.8 Checkpoints', quote: 'Finally, the exec action executes a given external command.' },
+      { url: 'https://www.gnu.org/software/tar/manual/html_node/checkpoints.html', where: 'GNU tar manual, section 3.8 Checkpoints', quote: 'The supplied command can be any valid command invocation, with or without additional command line arguments.' },
+      { url: 'https://www.gnu.org/software/tar/manual/html_node/checkpoints.html', where: 'GNU tar manual, section 3.8 Checkpoints', quote: 'This example also illustrates the fact that --checkpoint-action can be used without --checkpoint.' },
+      { url: 'https://man7.org/linux/man-pages/man1/tar.1.html', where: 'tar(1) man page, cited only to show what it omits', quote: 'Run ACTION on each checkpoint.' }
+    ],
+    footnote: 'Cited to the Texinfo manual on purpose. The tar(1) man page describes the option as the single line quoted above and never enumerates exec, so a reviewer checking the man page alone would conclude this row was invented.'
+  },
+  {
+    id: 'xargs',
+    program: 'xargs',
+    aliases: [],
+    label: 'xargs <utility> [argument ...]',
+    klass: 'runs a command string given on argv',
+    example: 'printf \'x\\n\' | xargs /path/to/script',
+    why: 'The whole job of xargs is to build a command line around a utility named on its own argv and then run it. An allowlist entry of xargs is an allowlist entry for whatever xargs is told to invoke.',
+    sources: [
+      { url: 'https://pubs.opengroup.org/onlinepubs/9799919799/utilities/xargs.html', where: 'POSIX.1-2024, xargs, Description', quote: 'The xargs utility shall construct a command line consisting of the utility and argument operands specified followed by as many arguments read in sequence from standard input as fit in length and number constraints specified by the options.' },
+      { url: 'https://pubs.opengroup.org/onlinepubs/9799919799/utilities/xargs.html', where: 'POSIX.1-2024, xargs, Description', quote: 'The xargs utility shall then invoke the constructed command line and wait for its completion.' }
+    ]
+  },
+  {
+    id: 'env',
+    program: 'env',
+    aliases: [],
+    label: 'env [name=value ...] <utility> [argument ...]',
+    klass: 'runs a command string given on argv',
+    example: 'env /path/to/script',
+    why: 'env is often allowlisted as a harmless way to set a variable. Setting variables is the first half of what it does. The second half is invoking a utility named on argv.',
+    sources: [
+      { url: 'https://pubs.opengroup.org/onlinepubs/9799919799/utilities/env.html', where: 'POSIX.1-2024, env, Description', quote: 'The env utility shall obtain the current environment, modify it according to its arguments, then invoke the utility named by the utility operand with the modified environment.' }
+    ]
+  },
+  {
+    id: 'ssh-proxycommand',
+    program: 'ssh',
+    aliases: [],
+    label: 'ssh -o ProxyCommand=<command> <host>',
+    klass: 'runs a command string given on argv',
+    example: 'ssh -o ProxyCommand=/path/to/script placeholder.invalid',
+    why: 'Any ssh_config keyword can be set with -o, and ProxyCommand is a command line that ssh runs through the shell. The destination host does not have to exist or be reachable for the proxy command to be started.',
+    sources: [
+      { url: 'https://man.openbsd.org/ssh', where: 'ssh(1), -o option', quote: 'Can be used to give options in the format used in the configuration file. This is useful for specifying options for which there is no separate command-line flag.' },
+      { url: 'https://man.openbsd.org/ssh_config', where: 'ssh_config(5), ProxyCommand', quote: 'Specifies the command to use to connect to the server. The command string extends to the end of the line' }
+    ]
+  },
+  {
+    id: 'docker-bind-root',
+    program: 'docker',
+    aliases: ['podman'],
+    label: 'docker run --mount type=bind,src=<host path>,dst=<container path>',
+    klass: 'grants host filesystem write from argv',
+    example: 'docker run --mount type=bind,src=/,dst=/host <image> <command>',
+    why: 'This one is not argv code execution, it is argv granted host filesystem access, and it is listed separately for that reason. A bind mount source is chosen on the command line and is writable unless you add the read only option, so a container that is otherwise sandboxed can rewrite files outside it.',
+    sources: [
+      { url: 'https://docs.docker.com/engine/storage/bind-mounts/', where: 'Docker docs, Bind mounts, Considerations and constraints', quote: 'Bind mounts have write access to files on the host by default.' },
+      { url: 'https://docs.docker.com/engine/storage/bind-mounts/', where: 'Docker docs, Bind mounts, Considerations and constraints', quote: 'One side effect of using bind mounts is that you can change the host filesystem via processes running in a container, including creating, modifying, or deleting important system files or directories.' }
+    ],
+    footnote: 'podman is listed as an alias because it accepts the same flag shape. The quoted sentences are from the Docker documentation and were not checked against podman documentation.'
+  }
+];
+
+var HOST_CATALOG = [
+  {
+    host: 'raw.githubusercontent.com',
+    kind: 'shared-content-host',
+    provider: 'GitHub',
+    who: 'Every public repository on GitHub. One host, content addressed by owner and repository in the path, so the host name alone scopes nothing.',
+    source: { url: 'https://docs.github.com/en/rest/repos/contents', where: 'GitHub REST API, repository contents, documented example response', quote: '"download_url": "https://raw.githubusercontent.com/octokit/octokit.rb/master/README.md"' }
+  },
+  {
+    host: 'github.io',
+    kind: 'tenant-subdomain',
+    provider: 'GitHub Pages',
+    who: 'Any GitHub account. The subdomain label is the account name.',
+    source: { url: 'https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages', where: 'GitHub Pages documentation, types of sites', quote: 'Must be stored in a repository named <owner>.github.io, where <owner> is the personal or organization account name' }
+  },
+  {
+    host: 's3.amazonaws.com',
+    kind: 'tenant-subdomain',
+    provider: 'Amazon S3',
+    who: 'Any AWS account. The subdomain label is the bucket name.',
+    source: { url: 'https://docs.aws.amazon.com/AmazonS3/latest/userguide/VirtualHosting.html', where: 'Amazon S3 user guide, virtual hosted style requests', quote: 'the bucket name is part of the domain name in the URL.' }
+  },
+  {
+    host: 'blob.core.windows.net',
+    kind: 'tenant-subdomain',
+    provider: 'Azure Blob Storage',
+    who: 'Any Azure subscription. The subdomain label is the storage account name.',
+    source: { url: 'https://learn.microsoft.com/en-us/rest/api/storageservices/naming-and-referencing-containers--blobs--and-metadata', where: 'Azure Storage services REST API, resource URI syntax', quote: 'For the storage account, the base URI includes the name of the account only: https://myaccount.blob.core.windows.net' }
+  },
+  {
+    host: 'pages.dev',
+    kind: 'tenant-subdomain',
+    provider: 'Cloudflare Pages',
+    who: 'Any Cloudflare account, and every branch of every project gets its own further label in front.',
+    source: { url: 'https://developers.cloudflare.com/pages/configuration/preview-deployments/', where: 'Cloudflare Pages documentation, preview deployments', quote: 'Each new branch you create will receive a new, randomly-generated hash in front of your pages.dev subdomain.' }
+  },
+  {
+    host: 'workers.dev',
+    kind: 'tenant-subdomain',
+    provider: 'Cloudflare Workers',
+    who: 'Any Cloudflare Workers account, with a further label per worker.',
+    source: { url: 'https://developers.cloudflare.com/workers/configuration/routing/workers-dev/', where: 'Cloudflare Workers documentation, workers.dev', quote: 'Cloudflare Workers accounts come with a workers.dev subdomain that is configurable in the Cloudflare dashboard.' }
+  },
+  {
+    host: 'vercel.app',
+    kind: 'tenant-subdomain',
+    provider: 'Vercel',
+    who: 'Any Vercel account. The documented generated URL format puts the project name, a hash and the scope slug in the label.',
+    source: { url: 'https://vercel.com/docs/deployments/generated-urls', where: 'Vercel documentation, generated URLs, anti-phishing protection', quote: 'If your <project-name> resembles a regular web domain, it may be shortened to avoid that resemblance.' }
+  },
+  {
+    host: 'ngrok-free.app',
+    kind: 'tenant-subdomain',
+    provider: 'ngrok',
+    who: 'Free ngrok accounts.',
+    availability: 'Used by free accounts',
+    source: { url: 'https://ngrok.com/docs/universal-gateway/domains/', where: 'ngrok documentation, ngrok managed domains', quote: 'you can create a Domain that is a subdomain of an ngrok-managed base domain.' }
+  },
+  {
+    host: 'ngrok-free.dev',
+    kind: 'tenant-subdomain',
+    provider: 'ngrok',
+    who: 'Free ngrok accounts.',
+    availability: 'Used by free accounts',
+    source: { url: 'https://ngrok.com/docs/universal-gateway/domains/', where: 'ngrok documentation, ngrok managed domains', quote: 'you can create a Domain that is a subdomain of an ngrok-managed base domain.' }
+  },
+  {
+    host: 'ngrok-free.pizza',
+    kind: 'tenant-subdomain',
+    provider: 'ngrok',
+    who: 'Free ngrok accounts.',
+    availability: 'Used by free accounts (coming soon)',
+    source: { url: 'https://ngrok.com/docs/universal-gateway/domains/', where: 'ngrok documentation, ngrok managed domains', quote: 'you can create a Domain that is a subdomain of an ngrok-managed base domain.' }
+  },
+  {
+    host: 'ngrok.app',
+    kind: 'tenant-subdomain',
+    provider: 'ngrok',
+    who: 'Paying ngrok accounts.',
+    availability: 'Available to paying accounts',
+    source: { url: 'https://ngrok.com/docs/universal-gateway/domains/', where: 'ngrok documentation, ngrok managed domains', quote: 'you can create a Domain that is a subdomain of an ngrok-managed base domain.' }
+  },
+  {
+    host: 'ngrok.dev',
+    kind: 'tenant-subdomain',
+    provider: 'ngrok',
+    who: 'Paying ngrok accounts.',
+    availability: 'Available to paying accounts',
+    source: { url: 'https://ngrok.com/docs/universal-gateway/domains/', where: 'ngrok documentation, ngrok managed domains', quote: 'you can create a Domain that is a subdomain of an ngrok-managed base domain.' }
+  },
+  {
+    host: 'ngrok.pizza',
+    kind: 'tenant-subdomain',
+    provider: 'ngrok',
+    who: 'Paying ngrok accounts.',
+    availability: 'Available to paying accounts',
+    source: { url: 'https://ngrok.com/docs/universal-gateway/domains/', where: 'ngrok documentation, ngrok managed domains', quote: 'you can create a Domain that is a subdomain of an ngrok-managed base domain.' }
+  },
+  {
+    host: 'ngrok.io',
+    kind: 'tenant-subdomain',
+    provider: 'ngrok',
+    who: 'Older ngrok accounts only. Still resolvable, so still worth catching in an allowlist, but no longer the suffix a new tunnel gets.',
+    availability: 'Discontinued and only available to older accounts',
+    source: { url: 'https://ngrok.com/docs/universal-gateway/domains/', where: 'ngrok documentation, ngrok managed domains table', quote: 'Discontinued and only available to older accounts' }
+  }
+];
+
+var NGROK_NOTE = 'On ngrok: the ngrok managed base domain table read on ' + CATALOG_SNAPSHOT_DATE + ' lists ngrok.app, ngrok.dev and ngrok.pizza for paying accounts, ngrok-free.app, ngrok-free.dev and ngrok-free.pizza for free accounts, and marks ngrok.io as discontinued and only available to older accounts. An allowlist rule that names ngrok.io alone is therefore both over broad for old accounts and blind to every suffix a new tunnel would actually get. That is a lead worth rechecking at the source link, because it is exactly the kind of row that goes stale.';
+
+/* ------------------------------------------------------------------ *
+ * PURE CORE. Input in, result object out. No DOM, no globals written.
+ * ------------------------------------------------------------------ */
+
+var MAX_ENTRIES = 5000;
+var MAX_JSON_DEPTH = 8;
+
+function buildProgramIndex(catalog) {
+  var idx = Object.create(null);
+  var list = Array.isArray(catalog) ? catalog : [];
+  for (var i = 0; i < list.length; i++) {
+    var entry = list[i];
+    if (!entry) { continue; }
+    var names = [entry.program].concat(Array.isArray(entry.aliases) ? entry.aliases : []);
+    for (var j = 0; j < names.length; j++) {
+      var key = String(names[j] || '').toLowerCase();
+      if (key === '') { continue; }
+      if (!Object.prototype.hasOwnProperty.call(idx, key)) { idx[key] = []; }
+      idx[key].push(entry);
+    }
+  }
+  return idx;
+}
+
+/* Collects up to MAX_ENTRIES + 1 strings. The extra one is a sentinel: if it is
+   ever pushed, more input existed than was kept, and state.over records that.
+   Anything dropped for depth sets state.deep. Both are surfaced to the user,
+   because a total that silently omits entries is worse than no total. */
+function collectStringsFromJson(value, depth, out, state) {
+  var st = state || { over: false, deep: false };
+  if (out.length > MAX_ENTRIES) { st.over = true; return out; }
+  if (depth > MAX_JSON_DEPTH) {
+    if (typeof value === 'string' || (value && typeof value === 'object')) { st.deep = true; }
+    return out;
+  }
+  if (typeof value === 'string') {
+    out.push(value);
+    return out;
+  }
+  if (Array.isArray(value)) {
+    for (var i = 0; i < value.length; i++) {
+      if (out.length > MAX_ENTRIES) { st.over = true; break; }
+      collectStringsFromJson(value[i], depth + 1, out, st);
+    }
+    return out;
+  }
+  if (value && typeof value === 'object') {
+    var keys = Object.keys(value);
+    for (var k = 0; k < keys.length; k++) {
+      if (out.length > MAX_ENTRIES) { st.over = true; break; }
+      collectStringsFromJson(value[keys[k]], depth + 1, out, st);
+    }
+  }
+  return out;
+}
+
+function splitAllowlist(text) {
+  var entries = [];
+  if (typeof text !== 'string') { return { entries: entries, format: 'none', truncated: false, deepSkipped: false }; }
+  var body = text.trim();
+  if (body === '') { return { entries: entries, format: 'none', truncated: false, deepSkipped: false }; }
+
+  var first = body.charAt(0);
+  if (first === '[' || first === '{') {
+    var parsed = null;
+    try { parsed = JSON.parse(body); } catch (e) { parsed = null; }
+    if (parsed !== null && typeof parsed === 'object') {
+      var state = { over: false, deep: false };
+      var strings = collectStringsFromJson(parsed, 0, [], state);
+      var over = state.over || strings.length > MAX_ENTRIES;
+      if (over) { strings = strings.slice(0, MAX_ENTRIES); }
+      for (var s = 0; s < strings.length; s++) {
+        var v = strings[s].trim();
+        if (v !== '') { entries.push({ line: s + 1, raw: v }); }
+      }
+      return { entries: entries, format: 'json', truncated: over, deepSkipped: state.deep };
+    }
+  }
+
+  var lines = text.split(/\r\n|\n|\r/);
+  var truncated = false;
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim();
+    if (line === '' || line.charAt(0) === '#') { continue; }
+    /* Checked only once a real entry is in hand, so a trailing blank line
+       never reports a truncation that did not happen. */
+    if (entries.length >= MAX_ENTRIES) { truncated = true; break; }
+    entries.push({ line: i + 1, raw: line });
+  }
+  return { entries: entries, format: 'lines', truncated: truncated, deepSkipped: false };
+}
+
+function normalizeProgramToken(raw) {
+  var s = String(raw === null || raw === undefined ? '' : raw).trim();
+  if (s === '') { return ''; }
+
+  var lp = s.indexOf('(');
+  if (lp > 0 && s.charAt(s.length - 1) === ')') {
+    s = s.slice(lp + 1, s.length - 1).trim();
+  }
+
+  var tok;
+  var q0 = s.charAt(0);
+  var qEnd = (q0 === '"' || q0 === "'") ? s.indexOf(q0, 1) : -1;
+  if (qEnd > 1) {
+    /* A quoted span is the whole program token, spaces and colons included.
+       Splitting it on whitespace would read "C:\Program Files\Git\git.exe"
+       as the program "program", which is a false clean result on a
+       security tool, so the quotes are honoured before anything else. */
+    tok = s.slice(1, qEnd);
+  } else {
+    var colon = s.indexOf(':');
+    if (colon > 1 && s.charAt(colon - 1) !== '\\') {
+      s = s.slice(0, colon).trim();
+    }
+    var parts = s.split(/\s+/);
+    tok = parts.length > 0 ? parts[0] : '';
+  }
+
+  while (tok.length > 0 && (tok.charAt(0) === '"' || tok.charAt(0) === "'")) { tok = tok.slice(1); }
+  while (tok.length > 0) {
+    var last = tok.charAt(tok.length - 1);
+    if (last === '"' || last === "'" || last === '*' || last === '?') { tok = tok.slice(0, -1); } else { break; }
+  }
+
+  var slash = tok.lastIndexOf('/');
+  var back = tok.lastIndexOf('\\');
+  var cut = slash > back ? slash : back;
+  if (cut > -1) { tok = tok.slice(cut + 1); }
+
+  if (tok.length > 4 && tok.slice(-4).toLowerCase() === '.exe') { tok = tok.slice(0, -4); }
+
+  return tok.toLowerCase();
+}
+
+function normalizeHostToken(raw) {
+  var s = String(raw === null || raw === undefined ? '' : raw).trim().toLowerCase();
+  if (s === '') { return ''; }
+
+  var scheme = s.indexOf('://');
+  if (scheme > -1) { s = s.slice(scheme + 3); }
+
+  var at = s.indexOf('@');
+  if (at > -1) { s = s.slice(at + 1); }
+
+  var slash = s.indexOf('/');
+  if (slash > -1) { s = s.slice(0, slash); }
+
+  var q = s.indexOf('?');
+  if (q > -1) { s = s.slice(0, q); }
+
+  if (s.charAt(0) === '[') {
+    var rb = s.indexOf(']');
+    if (rb > -1) { s = s.slice(0, rb + 1); }
+  } else {
+    var lastColon = s.lastIndexOf(':');
+    if (lastColon > -1) {
+      var tail = s.slice(lastColon + 1);
+      if (tail !== '' && /^[0-9]{1,6}$/.test(tail)) { s = s.slice(0, lastColon); }
+    }
+  }
+
+  while (s.length > 1 && s.charAt(s.length - 1) === '.') { s = s.slice(0, -1); }
+  return s;
+}
+
+function isUnderBase(host, base) {
+  if (host === base) { return true; }
+  return host.length > base.length + 1 && host.slice(-(base.length + 1)) === ('.' + base);
+}
+
+function classifyHostEntry(rawEntry, catalog) {
+  var list = Array.isArray(catalog) ? catalog : [];
+  var host = normalizeHostToken(rawEntry);
+  var result = {
+    raw: String(rawEntry === null || rawEntry === undefined ? '' : rawEntry),
+    host: host,
+    kind: 'plain',
+    base: '',
+    matches: [],
+    rank: 4,
+    verdict: 'No catalogued scope property',
+    detail: ''
+  };
+
+  if (host === '') {
+    result.kind = 'empty';
+    result.verdict = 'Empty after normalisation';
+    result.detail = 'Nothing left once scheme, userinfo, port and path were stripped.';
+    return result;
+  }
+
+  if (host === '*' || host === '*.*' || host === '**' || host === '*.') {
+    result.kind = 'any-host';
+    result.rank = 1;
+    result.verdict = 'Admits every host';
+    result.detail = 'This entry places no constraint on the host at all. Nothing below it matters.';
+    return result;
+  }
+
+  var star = host.indexOf('*');
+  if (star > -1) {
+    if (host.slice(0, 2) === '*.') {
+      var base = host.slice(2);
+      if (base.indexOf('*') > -1) {
+        result.kind = 'matcher-dependent';
+        result.rank = 3;
+        result.verdict = 'Wildcard shape this tool will not interpret';
+        result.detail = 'More than one wildcard. What it matches depends on your matcher, and this tool does not guess at matchers.';
+        return result;
+      }
+      result.base = base;
+      var hits = [];
+      for (var i = 0; i < list.length; i++) {
+        if (isUnderBase(list[i].host, base)) { hits.push(list[i]); }
+      }
+      result.matches = hits;
+      if (hits.length > 0) {
+        result.kind = 'wildcard-multitenant';
+        result.rank = 1;
+        result.verdict = 'Wildcard scope explosion';
+        result.detail = 'Every subdomain of ' + base + ' is permitted, and ' + (hits.length === 1 ? 'one catalogued base under it hands out' : hits.length + ' catalogued bases under it hand out') + ' subdomains to whoever asks.';
+      } else if (base.indexOf('.') === -1) {
+        result.kind = 'wildcard-tld';
+        result.rank = 1;
+        result.verdict = 'Wildcard over a whole suffix';
+        result.detail = 'The wildcard base ' + base + ' has no dot in it, so this permits every registrable name under that suffix.';
+      } else {
+        result.kind = 'wildcard-unknown';
+        result.rank = 3;
+        result.verdict = 'Unbounded, and this tool does not know who provisions it';
+        result.detail = 'Every subdomain of ' + base + ' is permitted. Whether anyone outside your organisation can obtain one is a property of ' + base + ' that is not in this catalogue. That is your call, not a finding.';
+      }
+      return result;
+    }
+    result.kind = 'matcher-dependent';
+    result.rank = 3;
+    result.verdict = 'Wildcard is not a leading label';
+    result.detail = 'The wildcard is not a leading label wildcard, so whether this matches a name such as an attacker registered lookalike depends entirely on your matcher. This tool does not guess at matchers.';
+    return result;
+  }
+
+  var exact = null;
+  var parent = null;
+  for (var j = 0; j < list.length; j++) {
+    if (list[j].host === host) { exact = list[j]; break; }
+    if (parent === null && isUnderBase(host, list[j].host)) { parent = list[j]; }
+  }
+
+  if (exact !== null) {
+    result.matches = [exact];
+    result.base = exact.host;
+    if (exact.kind === 'shared-content-host') {
+      result.kind = 'shared-content-host';
+      result.rank = 1;
+      result.verdict = 'One host, but the host is shared';
+      result.detail = 'No wildcard is needed here. This single host serves content that anyone can publish, scoped only by the path, so the host name constrains the publisher not at all.';
+    } else {
+      result.kind = 'multitenant-base';
+      result.rank = 2;
+      result.verdict = 'Bare multi-tenant base';
+      result.detail = 'This names the base domain itself rather than one tenant under it. Check whether your matcher treats a bare base as a suffix match, because that would be the same as a wildcard.';
+    }
+    return result;
+  }
+
+  if (parent !== null) {
+    result.matches = [parent];
+    result.base = parent.host;
+    result.kind = 'single-tenant';
+    result.rank = 4;
+    result.verdict = 'One tenant on a multi-tenant base';
+    result.detail = 'This is a single name under ' + parent.host + ', which is scoped. Listed only so you can see that the base is multi-tenant and a wildcard here would not be.';
+    return result;
+  }
+
+  return result;
+}
+
+function classifyCommandEntry(rawEntry, declaration, programIndex) {
+  var program = normalizeProgramToken(rawEntry);
+  var escapes = [];
+  if (program !== '' && Object.prototype.hasOwnProperty.call(programIndex, program)) {
+    escapes = programIndex[program];
+  }
+  var decl = (declaration === 'name-only' || declaration === 'args-constrained') ? declaration : 'undeclared';
+
+  var rank = 4;
+  var verdict = 'No catalogued argv escape for this program';
+  if (escapes.length > 0) {
+    if (decl === 'name-only') {
+      rank = 1;
+      verdict = 'Permitted escape';
+    } else if (decl === 'undeclared') {
+      rank = 2;
+      verdict = 'Needs your declaration';
+    } else {
+      rank = 3;
+      verdict = 'Outside what this tool can rank';
+    }
+  }
+
+  return {
+    raw: String(rawEntry === null || rawEntry === undefined ? '' : rawEntry),
+    program: program,
+    escapes: escapes,
+    declaration: decl,
+    rank: rank,
+    verdict: verdict
+  };
+}
+
+function lintCommandAllowlist(text, declarations, catalog) {
+  var idx = buildProgramIndex(catalog);
+  var split = splitAllowlist(text);
+  var decls = declarations && typeof declarations === 'object' ? declarations : Object.create(null);
+  var rows = [];
+  var counts = { rank1: 0, rank2: 0, rank3: 0, rank4: 0 };
+
+  for (var i = 0; i < split.entries.length; i++) {
+    var raw = split.entries[i].raw;
+    var d = Object.prototype.hasOwnProperty.call(decls, raw) ? decls[raw] : 'undeclared';
+    var row = classifyCommandEntry(raw, d, idx);
+    row.line = split.entries[i].line;
+    row.index = i;
+    rows.push(row);
+    counts['rank' + row.rank] += 1;
+  }
+
+  return {
+    format: split.format,
+    truncated: split.truncated,
+    deepSkipped: split.deepSkipped === true,
+    total: rows.length,
+    counts: counts,
+    rows: rows
+  };
+}
+
+function lintHostAllowlist(text, catalog) {
+  var split = splitAllowlist(text);
+  var rows = [];
+  var counts = { rank1: 0, rank2: 0, rank3: 0, rank4: 0 };
+
+  for (var i = 0; i < split.entries.length; i++) {
+    var row = classifyHostEntry(split.entries[i].raw, catalog);
+    row.line = split.entries[i].line;
+    row.index = i;
+    rows.push(row);
+    counts['rank' + row.rank] += 1;
+  }
+
+  return {
+    format: split.format,
+    truncated: split.truncated,
+    deepSkipped: split.deepSkipped === true,
+    total: rows.length,
+    counts: counts,
+    rows: rows
+  };
+}
+
+function safeShare(part, whole) {
+  if (!Number.isFinite(part) || !Number.isFinite(whole) || whole <= 0) { return null; }
+  var v = (part / whole) * 100;
+  if (!Number.isFinite(v)) { return null; }
+  return Math.round(v * 10) / 10;
+}
+
+function lintAllowlists(commandText, hostText, declarations) {
+  var cmd = lintCommandAllowlist(commandText, declarations, COMMAND_CATALOG);
+  var host = lintHostAllowlist(hostText, HOST_CATALOG);
+  var totalEntries = cmd.total + host.total;
+  var proven = cmd.counts.rank1 + host.counts.rank1;
+  return {
+    snapshotDate: CATALOG_SNAPSHOT_DATE,
+    commands: cmd,
+    hosts: host,
+    totalEntries: totalEntries,
+    provenEscapes: proven,
+    undeclared: cmd.counts.rank2,
+    provenShare: safeShare(proven, totalEntries),
+    claim: proven > 0
+      ? 'This allowlist is insufficient: at least one permitted entry admits a documented escape.'
+      : 'Nothing in this catalogue matched. That is not a clean bill of health, only an empty intersection with a finite, dated list.'
+  };
+}
+
+function sortRows(rows) {
+  var copy = rows.slice(0);
+  copy.sort(function (a, b) {
+    if (a.rank !== b.rank) { return a.rank - b.rank; }
+    return a.index - b.index;
+  });
+  return copy;
+}
+
+function buildReport(result) {
+  var lines = [];
+  lines.push('# Agent Sandbox Linter report');
+  lines.push('');
+  lines.push('Catalogue snapshot: ' + result.snapshotDate + ' (external material, frozen).');
+  lines.push('This report can prove an allowlist insufficient. It can never prove one sufficient.');
+  lines.push('');
+  lines.push('Verdict: ' + result.claim);
+  lines.push('Entries read: ' + result.totalEntries + '. Permitted escapes: ' + result.provenEscapes + '. Awaiting your declaration: ' + result.undeclared + '.');
+  lines.push('');
+  lines.push('## Command allowlist');
+  var crows = sortRows(result.commands.rows);
+  if (crows.length === 0) { lines.push('(no entries)'); }
+  for (var i = 0; i < crows.length; i++) {
+    var r = crows[i];
+    lines.push('');
+    lines.push('- [' + r.verdict + '] ' + r.raw + '   (program read as: ' + (r.program || 'none') + ')');
+    lines.push('  A, computed: ' + (r.escapes.length === 0 ? 'no catalogued argv escape' : r.escapes.length + ' documented argv escape(s)'));
+    for (var e = 0; e < r.escapes.length; e++) {
+      lines.push('    * ' + r.escapes[e].label);
+      for (var s = 0; s < r.escapes[e].sources.length; s++) {
+        lines.push('      source: ' + r.escapes[e].sources[s].url);
+      }
+    }
+    lines.push('  B, declared by you: ' + (r.declaration === 'undeclared' ? 'not declared' : (r.declaration === 'name-only' ? 'matcher matches the program name only' : 'matcher constrains arguments')) + ' (your assertion, not checked by this tool)');
+  }
+  lines.push('');
+  lines.push('## Host allowlist');
+  var hrows = sortRows(result.hosts.rows);
+  if (hrows.length === 0) { lines.push('(no entries)'); }
+  for (var h = 0; h < hrows.length; h++) {
+    var x = hrows[h];
+    lines.push('');
+    lines.push('- [' + x.verdict + '] ' + x.raw + '   (normalised to: ' + (x.host || 'nothing') + ')');
+    lines.push('  ' + x.detail);
+    for (var m = 0; m < x.matches.length; m++) {
+      lines.push('    * catalogued base ' + x.matches[m].host + ' - ' + x.matches[m].source.url);
+    }
+  }
+  lines.push('');
+  lines.push('Generated locally in a browser. No network request was made by this tool.');
+  return lines.join('\n');
+}
+
+var SAMPLE_COMMANDS = [
+  '# a plausible agent command allowlist',
+  'git',
+  'git log *',
+  'npm run build',
+  'find',
+  'awk',
+  'tar -x *',
+  'xargs',
+  'env',
+  'ssh',
+  'docker run *',
+  'python3',
+  'ls'
+].join('\n');
+
+var SAMPLE_HOSTS = [
+  '# a plausible agent host allowlist',
+  'api.anthropic.com',
+  'registry.npmjs.org',
+  '*.githubusercontent.com',
+  'raw.githubusercontent.com',
+  '*.s3.amazonaws.com',
+  '*.vercel.app',
+  '*.ngrok.io',
+  'myco.blob.core.windows.net',
+  'internal-api.example.com',
+  '*.example.com',
+  '*'
+].join('\n');
+
+/* ------------------------------------------------------------------ *
+ * UI. Everything below touches the DOM and is called from initUI().
+ * ------------------------------------------------------------------ */
+
+function escapeHtml(value) {
+  return String(value === null || value === undefined ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function declarationLabel(decl) {
+  if (decl === 'name-only') { return 'matches the program name only'; }
+  if (decl === 'args-constrained') { return 'constrains arguments'; }
+  return 'not declared yet';
+}
+
+function renderSources(sources) {
+  var out = '';
+  for (var i = 0; i < sources.length; i++) {
+    var s = sources[i];
+    out += '<div class="cite"><a href="' + escapeHtml(s.url) + '" rel="noopener">' + escapeHtml(s.where) + '</a>'
+      + '<blockquote>' + escapeHtml(s.quote) + '</blockquote></div>';
+  }
+  return out;
+}
+
+function renderEscape(esc) {
+  var out = '<div class="esc">';
+  out += '<div class="name">' + escapeHtml(esc.label) + '</div>';
+  out += '<div class="klass">' + escapeHtml(esc.klass) + '</div>';
+  out += '<div class="codewrap"><pre>' + escapeHtml(esc.example) + '</pre></div>';
+  out += '<p class="tiny"><button type="button" class="tiny-btn" data-copy="' + escapeHtml(esc.example) + '">Copy this invocation</button></p>';
+  out += '<p class="small">' + escapeHtml(esc.why) + '</p>';
+  out += renderSources(esc.sources);
+  if (esc.footnote) {
+    out += '<p class="tiny">' + escapeHtml(esc.footnote) + '</p>';
+  }
+  out += '</div>';
+  return out;
+}
+
+function renderCommandRow(row) {
+  var out = '<div class="row">';
+  out += '<div class="row-head">';
+  out += '<span class="rank rank-' + row.rank + '">' + escapeHtml(row.verdict) + '</span>';
+  out += '<code class="entry">' + escapeHtml(row.raw) + '</code>';
+  out += '<span class="meta">program read as <b>' + escapeHtml(row.program || 'nothing') + '</b>, your matcher ' + escapeHtml(declarationLabel(row.declaration)) + '</span>';
+  out += '</div><div class="cols">';
+
+  out += '<div class="col col-a"><p class="col-label"><span class="tagpill">A</span>Computed here, runtime independent</p>';
+  if (row.escapes.length === 0) {
+    out += '<p class="small">No entry in this catalogue names <code>' + escapeHtml(row.program || 'this') + '</code> as a program that takes a command on its own argv. The catalogue is finite and deliberately excludes plain interpreters, so this is an absence of evidence.</p>';
+  } else {
+    for (var i = 0; i < row.escapes.length; i++) {
+      out += renderEscape(row.escapes[i]);
+    }
+  }
+  out += '</div>';
+
+  var n = row.index;
+  out += '<div class="col col-b"><p class="col-label"><span class="tagpill">B</span>Declared by you, not checked</p>';
+  out += '<fieldset class="decl" data-entry="' + escapeHtml(row.raw) + '">';
+  out += '<legend>Does your matcher constrain arguments?</legend>';
+  out += '<label><input type="radio" name="decl-' + n + '" value="undeclared"' + (row.declaration === 'undeclared' ? ' checked' : '') + '><span>Not declared yet</span></label>';
+  out += '<label><input type="radio" name="decl-' + n + '" value="name-only"' + (row.declaration === 'name-only' ? ' checked' : '') + '><span>It matches the program name only</span></label>';
+  out += '<label><input type="radio" name="decl-' + n + '" value="args-constrained"' + (row.declaration === 'args-constrained' ? ' checked' : '') + '><span>It constrains the arguments too</span></label>';
+  out += '</fieldset>';
+
+  var assert = '';
+  if (row.escapes.length === 0) {
+    assert = 'Your declaration does not change this row, because column A found nothing to combine it with.';
+  } else if (row.declaration === 'undeclared') {
+    assert = 'Rank is held at amber until you choose. This tool will not pick a default, because a default would be this tool guessing at your matcher.';
+  } else if (row.declaration === 'name-only') {
+    assert = '<b>You asserted</b> that this matcher matches the program name only. On that assertion, and only on it, the documented escape in column A is permitted. This tool did not inspect your matcher.';
+  } else {
+    assert = '<b>You asserted</b> that this matcher constrains arguments. That is not a clearance. Whether your constraint actually excludes the flags in column A is a question about one product in one release, and answering it is out of scope here on purpose.';
+  }
+  out += '<p class="assert">' + assert + '</p>';
+  out += '</div></div></div>';
+  return out;
+}
+
+function renderHostRow(row) {
+  var out = '<div class="row">';
+  out += '<div class="row-head">';
+  out += '<span class="rank rank-' + row.rank + '">' + escapeHtml(row.verdict) + '</span>';
+  out += '<code class="entry">' + escapeHtml(row.raw) + '</code>';
+  out += '<span class="meta">normalised to <b>' + escapeHtml(row.host || 'nothing') + '</b></span>';
+  out += '</div><div class="cols">';
+
+  out += '<div class="col col-a"><p class="col-label"><span class="tagpill">A</span>Computed here, from the string alone</p>';
+  out += '<p class="small">' + escapeHtml(row.detail) + '</p>';
+  out += '</div>';
+
+  out += '<div class="col"><p class="col-label"><span class="tagpill">CAT</span>Catalogued bases this covers</p>';
+  if (row.matches.length === 0) {
+    out += '<p class="small">None. Either the base is not in the catalogue or the entry names a single host.</p>';
+  } else {
+    for (var i = 0; i < row.matches.length; i++) {
+      var m = row.matches[i];
+      out += '<div class="esc"><div class="name">' + escapeHtml(m.host) + '</div>';
+      out += '<div class="klass">' + escapeHtml(m.provider) + (m.availability ? ' - ' + escapeHtml(m.availability) : '') + '</div>';
+      out += '<p class="small">' + escapeHtml(m.who) + '</p>';
+      out += renderSources([m.source]);
+      out += '</div>';
+    }
+  }
+  out += '</div></div></div>';
+  return out;
+}
+
+var MAX_RENDERED_ROWS = 400;
+
+function renderRows(container, rows, renderer, emptyHtml) {
+  if (rows.length === 0) {
+    container.innerHTML = emptyHtml;
+    return;
+  }
+  var sorted = sortRows(rows);
+  var shown = sorted.length > MAX_RENDERED_ROWS ? MAX_RENDERED_ROWS : sorted.length;
+  var html = '';
+  if (shown < sorted.length) {
+    html += '<p class="notice">Rendering the first ' + shown + ' of ' + sorted.length + ' entries, highest rank first. All ' + sorted.length + ' were parsed and counted in the totals above. Only the drawing is limited.</p>';
+  }
+  for (var i = 0; i < shown; i++) {
+    html += renderer(sorted[i]);
+  }
+  container.innerHTML = html;
+}
+
+function renderSummary(container, result) {
+  var share = result.provenShare;
+  var shareText = share === null ? 'n/a' : share + '%';
+  var html = '';
+  html += '<div class="stat"><div class="n">' + result.totalEntries + '</div><div class="k">Entries read</div></div>';
+  html += '<div class="stat"><div class="n" style="color:var(--r1)">' + result.provenEscapes + '</div><div class="k">Permitted escapes</div></div>';
+  html += '<div class="stat"><div class="n" style="color:var(--r2)">' + result.undeclared + '</div><div class="k">Awaiting your column B</div></div>';
+  html += '<div class="stat"><div class="n">' + shareText + '</div><div class="k">Share of entries proven</div></div>';
+  container.innerHTML = html;
+}
+
+function renderCatalogues() {
+  var cbody = document.querySelector('#cmdCatTable tbody');
+  var rows = '';
+  for (var i = 0; i < COMMAND_CATALOG.length; i++) {
+    var c = COMMAND_CATALOG[i];
+    var links = '';
+    var quotes = '';
+    for (var s = 0; s < c.sources.length; s++) {
+      links += '<div><a href="' + escapeHtml(c.sources[s].url) + '" rel="noopener">' + escapeHtml(c.sources[s].where) + '</a></div>';
+      quotes += '<div><q>' + escapeHtml(c.sources[s].quote) + '</q></div>';
+    }
+    rows += '<tr><th scope="row">' + escapeHtml(c.program) + '</th><td><code>' + escapeHtml(c.label) + '</code></td><td>' + links + '</td><td class="q">' + quotes + '</td></tr>';
+  }
+  cbody.innerHTML = rows;
+
+  var hbody = document.querySelector('#hostCatTable tbody');
+  var hrows = '';
+  for (var j = 0; j < HOST_CATALOG.length; j++) {
+    var h = HOST_CATALOG[j];
+    hrows += '<tr><th scope="row"><code>' + escapeHtml(h.host) + '</code></th><td>' + escapeHtml(h.provider) + (h.availability ? '<br><span class="tiny">' + escapeHtml(h.availability) + '</span>' : '') + '</td><td><a href="' + escapeHtml(h.source.url) + '" rel="noopener">' + escapeHtml(h.source.where) + '</a></td><td class="q"><q>' + escapeHtml(h.source.quote) + '</q></td></tr>';
+  }
+  hbody.innerHTML = hrows;
+
+  document.getElementById('ngrokNote').textContent = NGROK_NOTE;
+  document.getElementById('snapDateA').textContent = CATALOG_SNAPSHOT_DATE;
+}
+
+function initUI() {
+  var cmdInput = document.getElementById('cmdInput');
+  var hostInput = document.getElementById('hostInput');
+  var cmdOut = document.getElementById('cmdOut');
+  var hostOut = document.getElementById('hostOut');
+  var summary = document.getElementById('summary');
+  var errBox = document.getElementById('errBox');
+  var themeBtn = document.getElementById('themeBtn');
+
+  var declarations = Object.create(null);
+  var lastResult = null;
+
+  function setTheme(theme, persist) {
+    var t = theme === 'light' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+    themeBtn.textContent = t === 'dark' ? 'Light mode' : 'Dark mode';
+    themeBtn.setAttribute('aria-pressed', t === 'dark' ? 'true' : 'false');
+    if (persist) {
+      try { window.localStorage.setItem('asl-theme', t); } catch (e) { /* ignore */ }
+    }
+  }
+
+  function readStoredTheme() {
+    try { return window.localStorage.getItem('asl-theme'); } catch (e) { return null; }
+  }
+
+  function run() {
+    errBox.textContent = '';
+    var result;
+    try {
+      result = lintAllowlists(cmdInput.value, hostInput.value, declarations);
+    } catch (e) {
+      errBox.textContent = 'Could not analyse that input: ' + (e && e.message ? e.message : 'unknown error') + '. Nothing was sent anywhere; try simplifying the paste.';
+      return;
+    }
+    lastResult = result;
+    renderSummary(summary, result);
+
+    renderRows(cmdOut, result.commands.rows, renderCommandRow,
+      '<div class="empty"><p><b>Nothing to lint yet.</b></p><p class="small">Paste the permitted commands your agent runs behind, one per line, or press <b>Load sample</b> to see a realistic allowlist scored.</p></div>');
+
+    renderRows(hostOut, result.hosts.rows, renderHostRow,
+      '<div class="empty"><p><b>No host entries yet.</b></p><p class="small">Paste the permitted hosts. Nothing is requested from them; only the strings are read.</p></div>');
+
+    var notes = [];
+    if (result.commands.truncated || result.hosts.truncated) {
+      notes.push('Input capped at ' + MAX_ENTRIES + ' entries per box. Entries past that point were not read, so the totals above are a floor.');
+    }
+    if (result.commands.deepSkipped || result.hosts.deepSkipped) {
+      notes.push('That JSON nests deeper than ' + MAX_JSON_DEPTH + ' levels. Strings below that depth were not read, so the totals above are a floor.');
+    }
+    errBox.textContent = notes.join(' ');
+  }
+
+  function setAllDeclarations(value) {
+    if (!lastResult) { return; }
+    var rows = lastResult.commands.rows;
+    for (var i = 0; i < rows.length; i++) {
+      declarations[rows[i].raw] = value;
+    }
+    run();
+  }
+
+  cmdOut.addEventListener('change', function (ev) {
+    var target = ev.target;
+    if (!target || target.type !== 'radio') { return; }
+    var fs = target.closest ? target.closest('fieldset.decl') : null;
+    if (!fs) { return; }
+    var key = fs.getAttribute('data-entry');
+    if (key === null) { return; }
+    var name = target.name;
+    var value = target.value;
+    declarations[key] = value;
+    run();
+    var again = cmdOut.querySelector('input[name="' + name + '"][value="' + value + '"]');
+    if (again && again.focus) { again.focus(); }
+  });
+
+  function flashCopied(btn) {
+    var old = btn.getAttribute('data-label') || btn.textContent;
+    btn.setAttribute('data-label', old);
+    btn.textContent = 'Copied';
+    window.setTimeout(function () { btn.textContent = old; }, 1400);
+  }
+
+  function copyText(text, btn) {
+    var fallback = function () {
+      try {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', 'readonly');
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        flashCopied(btn);
+      } catch (e) {
+        errBox.textContent = 'Copying is blocked in this browser context. Select the text manually instead.';
+      }
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { flashCopied(btn); }, fallback);
+    } else {
+      fallback();
+    }
+  }
+
+  cmdOut.addEventListener('click', function (ev) {
+    var btn = ev.target;
+    if (!btn || !btn.getAttribute) { return; }
+    var payload = btn.getAttribute('data-copy');
+    if (payload === null) { return; }
+    copyText(payload, btn);
+  });
+
+  document.getElementById('runBtn').addEventListener('click', run);
+
+  document.getElementById('sampleBtn').addEventListener('click', function () {
+    cmdInput.value = SAMPLE_COMMANDS;
+    hostInput.value = SAMPLE_HOSTS;
+    declarations = Object.create(null);
+    declarations['git'] = 'name-only';
+    declarations['git log *'] = 'args-constrained';
+    declarations['find'] = 'name-only';
+    declarations['awk'] = 'name-only';
+    declarations['env'] = 'name-only';
+    run();
+  });
+
+  document.getElementById('clearBtn').addEventListener('click', function () {
+    cmdInput.value = '';
+    hostInput.value = '';
+    declarations = Object.create(null);
+    run();
+  });
+
+  document.getElementById('declNameBtn').addEventListener('click', function () { setAllDeclarations('name-only'); });
+  document.getElementById('declArgsBtn').addEventListener('click', function () { setAllDeclarations('args-constrained'); });
+
+  var copyBtn = document.getElementById('copyBtn');
+  copyBtn.addEventListener('click', function () {
+    if (!lastResult) { return; }
+    copyText(buildReport(lastResult), copyBtn);
+  });
+
+  themeBtn.addEventListener('click', function () {
+    var current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    setTheme(current === 'light' ? 'dark' : 'light', true);
+  });
+
+  var stored = readStoredTheme();
+  setTheme(stored === 'light' ? 'light' : 'dark', false);
+
+  var timer = null;
+  function schedule() {
+    if (timer !== null) { window.clearTimeout(timer); }
+    timer = window.setTimeout(function () { timer = null; run(); }, 180);
+  }
+  cmdInput.addEventListener('input', schedule);
+  hostInput.addEventListener('input', schedule);
+
+  renderCatalogues();
+  run();
+}
+
+initUI();
+</script>
+</body>
+</html>
