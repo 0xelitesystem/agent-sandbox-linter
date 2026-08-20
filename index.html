@@ -216,6 +216,37 @@ footer { margin-top: 46px; padding-top: 18px; border-top: 1px solid var(--line);
 footer a { margin-right: 14px; display: inline-block; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 </style>
+<style>
+/* elitesystem brand tokens: chrome only, meaning preserved */
+:root, :root[data-theme="dark"] {
+  --accent: #d4ff3a;
+  --accent2: #ffb454;
+  --bg: #0a0a0a;
+  --bg2: #050505;
+  --bg3: #161614;
+  --fg: #e8e8e3;
+  --fg2: #a8a8a3;
+  --fg3: #6e6e68;
+  --line: #1f1f1d;
+  --line2: #2a2a27;
+  --panel: #111110;
+}
+:root[data-theme="light"] {
+  --accent: #2d6b00;
+  --accent2: #a05a00;
+  --bg: #e8ebef;
+  --bg2: #f4f5f8;
+  --bg3: #d3d7df;
+  --fg: #0a0a0a;
+  --fg2: #2a2a27;
+  --fg3: #6e6e68;
+  --line: #c8cdd5;
+  --line2: #aab0ba;
+  --panel: #dee2e8;
+}
+:root { color-scheme: dark; }
+:root[data-theme="light"] { color-scheme: light; }
+</style>
 </head>
 <body>
 <script>
