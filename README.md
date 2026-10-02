@@ -2,9 +2,18 @@
 
 Paste an AI agent's command allowlist and host allowlist and see which permitted programs are documented to run code from their own argv, and which host wildcards anyone can provision a name under.
 
-## Live demo
+**Live demo:** https://0xelitesystem.github.io/agent-sandbox-linter/
 
-https://0xelitesystem.github.io/agent-sandbox-linter/
+## Use
+
+1. Paste your agent's allowed commands into Permitted commands and its allowed hosts into Permitted hosts, as plain lines, a JSON array or a settings object. Or click Load sample.
+2. Click Analyse.
+3. For each command row, declare whether your matcher matches the program name only or constrains the arguments too, or use the Declare all buttons.
+4. Read the ranked command findings and the host wildcard findings, then click Copy report.
+
+## Why this exists
+
+An allowlist can look safe because it lists familiar tools, yet several of those tools document ways to run a command from their own arguments, and some host wildcards cover subdomains anyone can provision. This page checks an allowlist against a cited catalogue of that documented behaviour. It is one HTML file with no tracking and no network calls, MIT licensed.
 
 ## Features
 
@@ -55,7 +64,20 @@ Two notes on that table, because both are the kind of row that goes stale:
 
 ## Privacy
 
-Everything runs in your browser. The allowlists you paste are read as strings and never leave the page. The tool makes no request to the hosts you paste, no request to any source URL, and no request to anything else: every quote was fetched by hand while the catalogue was written and then frozen into the file. One HTML file, no external dependencies, no analytics, no build step. Open the page source and read it, or open the network tab and watch it stay empty.
+Everything runs in your browser. The allowlists you paste are read as strings and never leave the page. The tool makes no request to the hosts you paste, no request to any source URL, and no request to anything else: every quote was fetched by hand while the catalogue was written and then frozen into the file. One HTML file, no external dependencies, no analytics, no build step. Open the page source and read it, or open the network tab and watch it stay empty. The only thing the page stores is your light or dark theme choice, in localStorage under the key `asl-theme`.
+
+## Run locally
+
+```
+git clone https://github.com/0xelitesystem/agent-sandbox-linter
+cd agent-sandbox-linter
+```
+
+Open `index.html` in any modern browser, or serve the folder with `python -m http.server 8000` and visit http://localhost:8000/.
+
+## Build
+
+No build step. The whole tool is one `index.html` file with inline CSS and JavaScript.
 
 ## License
 
