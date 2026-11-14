@@ -87,7 +87,7 @@ MIT. See [LICENSE](LICENSE).
 
 Two neighbours, told apart by what you feed them. This one eats an allowlist config and looks forward at what it could permit.
 
-- [agent-blast-radius](https://github.com/0xelitesystem/agent-blast-radius) eats a session transcript and looks backward at what already happened.
+- [cantundo](https://github.com/0xelitesystem/cantundo) eats a session transcript and looks backward at what already happened.
 - [ai-agent-guardrails-reference](https://github.com/0xelitesystem/ai-agent-guardrails-reference) is prose, with no input at all.
 
 More tools at https://0xelitesystem.github.io/ and https://elitesystem.ai
